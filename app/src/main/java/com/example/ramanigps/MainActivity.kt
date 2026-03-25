@@ -66,25 +66,31 @@ class MainActivity : ComponentActivity(), LocationListener {
         }
     }
 
-    private fun checkPermissions() {
-        val permission = Manifest.permission.ACCESS_FINE_LOCATION
+    fun checkPermissions() {
+        val permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.POST_NOTIFICATIONS)
+        if (permissions.any { checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }) {
+            val launcher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { isGranted ->
 
-        if(checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) {
-            startGps()
-        } else {
-            val launcher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-                if (it) {
-                    startGps()
-                } else {
-                    Toast.makeText(this, "Cannot access GPS as permission denied", Toast.LENGTH_LONG).show()
+                // With multiple permissions, isGranted is a map and we use the
+                // specific permission as a key (index) to test if that specific
+                // permission has been granted
+                if(isGranted[Manifest.permission.ACCESS_FINE_LOCATION] == true) {
+                    startGPS()
+                }
+
+                if(isGranted[Manifest.permission.POST_NOTIFICATIONS] == true) {
+                    Toast.makeText(this, "Notification permission granted", Toast.LENGTH_LONG).show()
                 }
             }
-            launcher.launch(permission)
+            // Launch the launcher with the array of requested permissions
+            launcher.launch(permissions)
+        } else {
+            startGPS()
         }
     }
 
     @SuppressLint("MissingPermission")
-    fun startGps() {
+    fun startGPS() {
         locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 5f, this)
     }
