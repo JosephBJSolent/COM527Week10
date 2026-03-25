@@ -13,12 +13,19 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.window.Dialog
 import com.example.ramanigps.ui.theme.RamaniGPSTheme
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.Style
@@ -42,7 +49,10 @@ class MainActivity : ComponentActivity(), LocationListener {
         checkPermissions()
         setContent {
             RamaniGPSTheme {
+                // state variable for displaying location info
+                var dialogVisible by remember { mutableStateOf(false) }
                 var latLng by remember { mutableStateOf(LatLng(50.9, -1.4))}
+
                 viewModel.latLngLiveData.observe(this) {
                     latLng = it
                 }
@@ -59,7 +69,42 @@ class MainActivity : ComponentActivity(), LocationListener {
                         center=latLng,
                         radius=20f,
                         opacity=0.3f,
-                        color="#0000ff"
+                        color="#0000ff",
+                        onClick = {
+                            dialogVisible = true
+                        }
+                    )
+                }
+                if (dialogVisible) {
+                    AlertDialog(
+                        icon = {
+                            Icon(painter=painterResource(org.maplibre.android.R.drawable.maplibre_logo_icon), "Book Tickets")
+                        },
+                        title = {
+                            Text("Current Position")
+                        },
+                        text = {
+                            Text(
+                                "Longitude: ${latLng.longitude} Latitude: ${latLng.latitude}"
+                            )
+                        },
+                        onDismissRequest = {
+                            dialogVisible = false
+                        },
+                        dismissButton = {
+                            Button(onClick = {
+                                dialogVisible = false
+                            }) {
+                                Text("Dismiss")
+                            }
+                        },
+                        confirmButton = {
+                            Button(onClick = {
+                                dialogVisible = false
+                            }) {
+                                Text("Confirm")
+                            }
+                        }
                     )
                 }
             }
